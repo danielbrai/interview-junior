@@ -39,7 +39,7 @@ public class HeroController {
     @GetMapping(path = "/{id}")
     public ResponseEntity<Hero> getById(@PathVariable("id") String id) {
 
-        Optional<Hero> optionalHero = heroService.getById(UUID.fromString(id));
+        Optional<Hero> optionalHero = heroService.getById(id);
 
         if (optionalHero.isPresent()) {
             return ok(optionalHero.get());

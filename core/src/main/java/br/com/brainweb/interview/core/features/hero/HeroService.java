@@ -26,9 +26,9 @@ public class HeroService {
         return heroRepository.create(new Hero(createHeroRequest, poweStatsId));
     }
 
-    public Optional<Hero> getById(UUID id) {
+    public Optional<Hero> getById(String id) {
         try {
-            Hero hero = this.heroRepository.findById(id);
+            Hero hero = this.heroRepository.findById(UUID.fromString(id));
             return Optional.of(hero);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
