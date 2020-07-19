@@ -7,12 +7,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HeroServiceTest {
@@ -27,7 +31,7 @@ public class HeroServiceTest {
     public void shouldBeReturnAnOptionalContainingTheWantedHeroIfItExists() {
         //given
         String wantedHeroId = "1b9f3125-b59d-49c0-90df-2cf6be63e39f";
-        Mockito.when(repository.findById(UUID.fromString(wantedHeroId))).thenReturn(this.createHero());
+        when(repository.findById(UUID.fromString(wantedHeroId))).thenReturn(this.createHero());
 
         //when
         Optional<Hero> wantedHero = this.service.getById(wantedHeroId);
@@ -41,13 +45,51 @@ public class HeroServiceTest {
     public void shouldBeReturnANullableOptionalIfWantedHeroDoesNotExists() {
         //given
         String inexistentHeroId = "93918f6f-861e-4cf9-b6f9-c2b78a55e7a3";
-        Mockito.when(repository.findById(UUID.fromString(inexistentHeroId))).thenThrow(new EmptyResultDataAccessException(0));
+        when(repository.findById(UUID.fromString(inexistentHeroId))).thenThrow(new EmptyResultDataAccessException(0));
 
         // when
         Optional<Hero> wantedHero = this.service.getById(inexistentHeroId);
 
         // then
         Assert.assertFalse(wantedHero.isPresent());
+    }
+
+    @Test
+    public void shouldReturnAListWithHeroesWhoseNamesMatchWithTheGivenParam() {
+        //given
+        String filterParam = "man";
+        List<Hero> searchedHeroes = new ArrayList<>();
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Superman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.ALIEN)
+                .build());
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Batman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.HUMAN)
+                .build());
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Wonder Woman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.DIVINE)
+                .build());
+
+        when(this.repository.findByParam(filterParam)).thenReturn(searchedHeroes);
+
+        // when
+        Collection<Hero> byParam = this.service.getByParam(filterParam);
+
+        // then
+        int expectedNumberOfHeroesReturned = 3;
+        Assert.assertFalse(byParam.isEmpty());
+        Assert.assertEquals(expectedNumberOfHeroesReturned, byParam.size());
     }
 
     private Hero createHero() {

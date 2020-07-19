@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,7 +80,7 @@ class HeroControllerTest {
             ObjectMapper mapper = new ObjectMapper();
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-            Assert.assertEquals(mvcResult.getResponse().getContentAsString(), mapper.writeValueAsString(createHero()));
+            Assert.assertEquals(mapper.writeValueAsString(createHero()), mvcResult.getResponse().getContentAsString());
         });
     }
 
@@ -94,9 +96,77 @@ class HeroControllerTest {
 
         //then
         resultActions.andExpect(status().is4xxClientError()).andExpect(mvcResult -> {
-            Assert.assertEquals(mvcResult.getResponse().getContentAsString(), "");
+            Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
         });
     }
+
+    @Test
+    void shouldReturnAListOfHeroesInResponseBodyWhenParameterMatchWithAHeroNameInDatabase() throws Exception {
+
+        //given
+        String filterParam = "man";
+        List<Hero> searchedHeroes = new ArrayList<>();
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Superman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.ALIEN)
+                .build());
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Batman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.HUMAN)
+                .build());
+
+        searchedHeroes.add(Hero.builder()
+                .id(UUID.randomUUID())
+                .name("Wonder Woman")
+                .powerStatsId(UUID.randomUUID())
+                .race(Race.DIVINE)
+                .build());
+
+        Mockito.when(heroService.getByParam(filterParam)).thenReturn(searchedHeroes);
+
+        //when
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/heroes?name=" + filterParam));
+
+        //then
+        resultActions.andExpect(status().is2xxSuccessful()).andExpect(mvcResult -> {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+            List<Hero> arrayList = mapper.readValue(mvcResult.getResponse().getContentAsString(), ArrayList.class);
+            Assert.assertFalse(arrayList.isEmpty());
+            Assert.assertEquals(3, arrayList.size());
+        });;
+    }
+
+    @Test
+    void shouldReturnAnEmptyListOfHeroesInResponseBodyWhenParameterMatchWithAHeroNameInDatabase() throws Exception {
+
+        //given
+        String filterParam = "man";
+        List<Hero> searchedHeroes = new ArrayList<>();
+
+        Mockito.when(heroService.getByParam(filterParam)).thenReturn(searchedHeroes);
+
+        //when
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/heroes?name=" + filterParam));
+
+        //then
+        resultActions.andExpect(status().is2xxSuccessful()).andExpect(mvcResult -> {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+            List<Hero> arrayList = mapper.readValue(mvcResult.getResponse().getContentAsString(), ArrayList.class);
+            Assert.assertTrue(arrayList.isEmpty());
+        });
+        ;
+    }
+
 
     private CreateHeroRequest createHeroRequest() {
         return CreateHeroRequest.builder()

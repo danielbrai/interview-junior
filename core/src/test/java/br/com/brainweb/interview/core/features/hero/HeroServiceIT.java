@@ -19,6 +19,11 @@ public class HeroServiceIT {
         heroService.create(createHeroRequest());
     }
 
+    @Test
+    public void findHeroByName() {
+        heroService.getByParam("man");
+    }
+
     private CreateHeroRequest createHeroRequest() {
         return CreateHeroRequest.builder()
             .name("Batman")

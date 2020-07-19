@@ -6,9 +6,11 @@ import br.com.brainweb.interview.model.PowerStats;
 import br.com.brainweb.interview.model.request.CreateHeroRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,5 +35,9 @@ public class HeroService {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    public Collection<Hero> getByParam(String name) {
+        return this.heroRepository.findByParam(name);
     }
 }
