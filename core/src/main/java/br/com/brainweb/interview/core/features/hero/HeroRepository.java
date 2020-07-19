@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +22,11 @@ public class HeroRepository {
             //"p.id, p.strength, p.agility, p.dexterity, p.intelligence, p.created_at, p.updated_at" +
             "FROM hero h " +
             "WHERE h.id =:id ";
+
+    private static final String FIND_HERO_BY_PARAM = " SELECT " +
+            "h.id, h.name, h.race, h.power_stats_id, h.enabled, h.created_at, h.updated_at " +
+            "FROM hero h " +
+            "WHERE LOWER(h.name) LIKE :name";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -40,6 +46,16 @@ public class HeroRepository {
 
         return this.namedParameterJdbcTemplate.queryForObject(
                 FIND_HERO_BY_ID,
+                params,
+                new HeroRowMapper()
+        );
+    }
+
+    Collection<Hero> findByParam(String name) {
+        final Map<String, Object> params = Map.of("name", "%" + name.toLowerCase() + "%");
+
+        return this.namedParameterJdbcTemplate.query(
+                FIND_HERO_BY_PARAM,
                 params,
                 new HeroRowMapper()
         );

@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,5 +48,11 @@ public class HeroController {
         }
 
         return notFound().build();
+    }
+
+    @GetMapping()
+    public ResponseEntity<Collection<Hero>> getByParameter(@RequestParam String name) {
+
+        return ok(heroService.getByParam(name));
     }
 }

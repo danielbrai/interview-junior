@@ -6,5 +6,5 @@ package br.com.brainweb.interview.model.enums;
  * Em caso de não existirem será necessário adicionar a raça que deseja ao enum.
  */
 public enum Race {
-    HUMAN, ALIEN, DIVINE, CYBORG
+    HUMAN, ALIEN, DIVINE, CYBORG, METAHUMAN
 }
