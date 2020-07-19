@@ -21,7 +21,6 @@ public class HeroRepository {
 
     private static final String FIND_HERO_BY_ID = "SELECT " +
             "h.id, h.name, h.race, h.power_stats_id, h.enabled, h.created_at, h.updated_at " +
-            //"p.id, p.strength, p.agility, p.dexterity, p.intelligence, p.created_at, p.updated_at" +
             "FROM hero h " +
             "WHERE h.id =:id ";
 
@@ -32,6 +31,10 @@ public class HeroRepository {
 
     private static final String DELETE_QUERY = "DELETE FROM hero h " +
             "WHERE h.id=:id";
+
+    public static final String UPDATE_HERO_QUERY = "UPDATE hero " +
+            "SET name =:name, race =:race " +
+            "WHERE id =:id";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -69,5 +72,20 @@ public class HeroRepository {
     void delete(UUID id) {
         final SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
         this.namedParameterJdbcTemplate.update(DELETE_QUERY, namedParameters);
+    }
+
+
+    public void update(Hero hero) {
+
+        final Map<String, Object> params = Map.of("name", hero.getName(),
+                "race", hero.getRace().name(),
+                "id", hero.getId());
+
+        final SqlParameterSource namedParameters = new MapSqlParameterSource(params);
+
+        this.namedParameterJdbcTemplate.update(
+                UPDATE_HERO_QUERY,
+                namedParameters
+        );
     }
 }

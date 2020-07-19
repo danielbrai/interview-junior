@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,13 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.created;
-import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -42,15 +41,14 @@ public class HeroController {
     }
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<Hero> getById(@PathVariable("id") String id) {
+    public ResponseEntity<?> getById(@PathVariable("id") String id) {
 
-        Optional<Hero> optionalHero = heroService.getById(id);
-
-        if (optionalHero.isPresent()) {
-            return ok(optionalHero.get());
+        try {
+            Hero hero = heroService.getById(id);
+            return ok(hero);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
-        return notFound().build();
     }
 
     @GetMapping()
@@ -64,11 +62,21 @@ public class HeroController {
 
         try {
             heroService.delete(id);
-        }catch (ResourceNotFoundException e){
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<?> put(@RequestBody CreateHeroRequest heroPayload, @PathVariable("id") String id) {
+
+        try {
+            this.heroService.put(heroPayload, id);
+            return ok().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

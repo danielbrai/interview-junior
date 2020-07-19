@@ -3,10 +3,10 @@ package br.com.brainweb.interview.core.features.powerstats;
 import br.com.brainweb.interview.core.exception.PowerStatsNotFoundException;
 import br.com.brainweb.interview.model.PowerStats;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,19 +20,21 @@ public class PowerStatsService {
         return powerStatsRepository.create(powerStats);
     }
 
-    private Optional<PowerStats> getById(String id) {
-        return Optional.ofNullable(this.powerStatsRepository.getById(UUID.fromString(id)));
+    public PowerStats getById(String id) {
+        try {
+            return this.powerStatsRepository.getById(UUID.fromString(id));
+        } catch (EmptyResultDataAccessException e) {
+            throw new PowerStatsNotFoundException("A informação de status pesquisa não foi encontrado");
+        }
     }
 
     public void delete(String id) {
+        PowerStats powerStats = this.getById(id);
+        this.powerStatsRepository.delete(powerStats.getId());
+    }
 
-        Optional<PowerStats> optionalPowerStats = this.getById(id);
-
-        optionalPowerStats.ifPresentOrElse(
-                powerStats -> this.powerStatsRepository.delete(powerStats.getId()),
-                () -> {
-                    throw new PowerStatsNotFoundException("A informação de poder pesquisad não foi encontrado");
-                }
-        );
+    @Transactional
+    public void update(PowerStats powerStats) {
+        this.powerStatsRepository.update(powerStats);
     }
 }

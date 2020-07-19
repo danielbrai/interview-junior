@@ -7,12 +7,11 @@ import br.com.brainweb.interview.model.PowerStats;
 import br.com.brainweb.interview.model.request.CreateHeroRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -29,12 +28,12 @@ public class HeroService {
         return heroRepository.create(new Hero(createHeroRequest, poweStatsId));
     }
 
-    public Optional<Hero> getById(String id) {
+    public Hero getById(String id) {
         try {
             Hero hero = this.heroRepository.getById(UUID.fromString(id));
-            return Optional.of(hero);
+            return hero;
         } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
+            throw new HeroNotFoudException("O herói pesquisado não foi encontrado");
         }
     }
 
@@ -44,18 +43,26 @@ public class HeroService {
 
     @Transactional
     public void delete(String id) {
-        Optional<Hero> optionalHero = this.getById(id);
+        Hero hero = this.getById(id);
+        this.heroRepository.delete(hero.getId());
+        this.powerStatsService.delete(hero.getPowerStatsId().toString());
+    }
 
-        optionalHero.ifPresentOrElse(
-                hero -> {
-                    this.heroRepository.delete(hero.getId());
-                    this.powerStatsService.delete(hero.getPowerStatsId().toString());
-                },
-                () -> {
-                    throw new HeroNotFoudException("O herói pesquisado não foi encontrado");
-                }
-        );
+    public void put(CreateHeroRequest heroPayload, String id) {
 
+        Hero hero = this.getById(id);
+        PowerStats powerStats = this.powerStatsService.getById(hero.getPowerStatsId().toString());
 
+        powerStats.setAgility(Objects.nonNull(heroPayload.getAgility()) ? heroPayload.getAgility() : powerStats.getAgility());
+        powerStats.setDexterity(Objects.nonNull(heroPayload.getDexterity()) ? heroPayload.getDexterity() : powerStats.getDexterity());
+        powerStats.setStrength(Objects.nonNull(heroPayload.getStrength()) ? heroPayload.getStrength() : powerStats.getStrength());
+        powerStats.setIntelligence(Objects.nonNull(heroPayload.getIntelligence()) ? heroPayload.getIntelligence() : powerStats.getIntelligence());
+
+        this.powerStatsService.update(powerStats);
+
+        hero.setName(Objects.nonNull(heroPayload.getName()) ? heroPayload.getName() : hero.getName());
+        hero.setRace(Objects.nonNull(heroPayload.getRace()) ? heroPayload.getRace() : hero.getRace());
+
+        this.heroRepository.update(hero);
     }
 }
