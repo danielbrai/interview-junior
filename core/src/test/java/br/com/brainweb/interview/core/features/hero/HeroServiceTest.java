@@ -31,7 +31,7 @@ public class HeroServiceTest {
     public void shouldBeReturnAnOptionalContainingTheWantedHeroIfItExists() {
         //given
         String wantedHeroId = "1b9f3125-b59d-49c0-90df-2cf6be63e39f";
-        when(repository.findById(UUID.fromString(wantedHeroId))).thenReturn(this.createHero());
+        when(repository.getById(UUID.fromString(wantedHeroId))).thenReturn(this.createHero());
 
         //when
         Optional<Hero> wantedHero = this.service.getById(wantedHeroId);
@@ -45,7 +45,7 @@ public class HeroServiceTest {
     public void shouldBeReturnANullableOptionalIfWantedHeroDoesNotExists() {
         //given
         String inexistentHeroId = "93918f6f-861e-4cf9-b6f9-c2b78a55e7a3";
-        when(repository.findById(UUID.fromString(inexistentHeroId))).thenThrow(new EmptyResultDataAccessException(0));
+        when(repository.getById(UUID.fromString(inexistentHeroId))).thenThrow(new EmptyResultDataAccessException(0));
 
         // when
         Optional<Hero> wantedHero = this.service.getById(inexistentHeroId);
@@ -81,7 +81,7 @@ public class HeroServiceTest {
                 .race(Race.DIVINE)
                 .build());
 
-        when(this.repository.findByParam(filterParam)).thenReturn(searchedHeroes);
+        when(this.repository.getByName(filterParam)).thenReturn(searchedHeroes);
 
         // when
         Collection<Hero> byParam = this.service.getByParam(filterParam);

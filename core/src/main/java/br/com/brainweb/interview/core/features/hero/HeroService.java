@@ -1,5 +1,6 @@
 package br.com.brainweb.interview.core.features.hero;
 
+import br.com.brainweb.interview.core.exception.HeroNotFoudException;
 import br.com.brainweb.interview.core.features.powerstats.PowerStatsService;
 import br.com.brainweb.interview.model.Hero;
 import br.com.brainweb.interview.model.PowerStats;
@@ -30,7 +31,7 @@ public class HeroService {
 
     public Optional<Hero> getById(String id) {
         try {
-            Hero hero = this.heroRepository.findById(UUID.fromString(id));
+            Hero hero = this.heroRepository.getById(UUID.fromString(id));
             return Optional.of(hero);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -38,6 +39,23 @@ public class HeroService {
     }
 
     public Collection<Hero> getByParam(String name) {
-        return this.heroRepository.findByParam(name);
+        return this.heroRepository.getByName(name);
+    }
+
+    @Transactional
+    public void delete(String id) {
+        Optional<Hero> optionalHero = this.getById(id);
+
+        optionalHero.ifPresentOrElse(
+                hero -> {
+                    this.heroRepository.delete(hero.getId());
+                    this.powerStatsService.delete(hero.getPowerStatsId().toString());
+                },
+                () -> {
+                    throw new HeroNotFoudException("O herói pesquisado não foi encontrado");
+                }
+        );
+
+
     }
 }
