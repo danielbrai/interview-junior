@@ -1,5 +1,6 @@
 package br.com.brainweb.interview.core.features.hero;
 
+import br.com.brainweb.interview.core.exception.HeroNotFoudException;
 import br.com.brainweb.interview.model.Hero;
 import br.com.brainweb.interview.model.enums.Race;
 import org.junit.Assert;
@@ -13,9 +14,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,24 +35,25 @@ public class HeroServiceTest {
         when(repository.getById(UUID.fromString(wantedHeroId))).thenReturn(this.createHero());
 
         //when
-        Optional<Hero> wantedHero = this.service.getById(wantedHeroId);
+        Hero hero = this.service.getById(wantedHeroId);
 
         //then
-        Assert.assertTrue(wantedHero.isPresent());
-        Assert.assertNotNull(wantedHero.get());
+        Assert.assertNotNull(hero);
     }
 
     @Test
-    public void shouldBeReturnANullableOptionalIfWantedHeroDoesNotExists() {
+    public void shouldThrowAnExceptionIfWantedHeroDoesNotExists() {
         //given
         String inexistentHeroId = "93918f6f-861e-4cf9-b6f9-c2b78a55e7a3";
         when(repository.getById(UUID.fromString(inexistentHeroId))).thenThrow(new EmptyResultDataAccessException(0));
 
         // when
-        Optional<Hero> wantedHero = this.service.getById(inexistentHeroId);
+        Exception exception = assertThrows(HeroNotFoudException.class, () -> {
+            this.service.getById(inexistentHeroId);
+        });
 
         // then
-        Assert.assertFalse(wantedHero.isPresent());
+        Assert.assertTrue(exception.getMessage().contains("O herói pesquisado não foi encontrado"));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package br.com.brainweb.interview.core.features.hero;
 
+import br.com.brainweb.interview.core.exception.HeroNotFoudException;
 import br.com.brainweb.interview.model.Hero;
 import br.com.brainweb.interview.model.enums.Race;
 import br.com.brainweb.interview.model.request.CreateHeroRequest;
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -69,7 +69,7 @@ class HeroControllerTest {
 
         //given
         String wantedHeroId = "1b9f3125-b59d-49c0-90df-2cf6be63e39f";
-        Mockito.when(heroService.getById(wantedHeroId)).thenReturn(Optional.of(this.createHero()));
+        Mockito.when(heroService.getById(wantedHeroId)).thenReturn(this.createHero());
 
         //when
         ResultActions resultActions = mockMvc.perform(get("/api/v1/heroes/" + wantedHeroId));
@@ -89,14 +89,14 @@ class HeroControllerTest {
 
         //given
         String inexistentHeroId = "93918f6f-861e-4cf9-b6f9-c2b78a55e7a3";
-        Mockito.when(heroService.getById(inexistentHeroId)).thenReturn(Optional.empty());
+        when(this.heroService.getById(inexistentHeroId)).thenThrow(new HeroNotFoudException("O herói pesquisado não foi encontrado"));
 
         //when
         ResultActions resultActions = mockMvc.perform(get("/api/v1/heroes/" + inexistentHeroId));
 
         //then
         resultActions.andExpect(status().is4xxClientError()).andExpect(mvcResult -> {
-            Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
+            Assert.assertEquals("O herói pesquisado não foi encontrado", mvcResult.getResponse().getContentAsString());
         });
     }
 
@@ -141,7 +141,8 @@ class HeroControllerTest {
             List<Hero> arrayList = mapper.readValue(mvcResult.getResponse().getContentAsString(), ArrayList.class);
             Assert.assertFalse(arrayList.isEmpty());
             Assert.assertEquals(3, arrayList.size());
-        });;
+        });
+        ;
     }
 
     @Test
