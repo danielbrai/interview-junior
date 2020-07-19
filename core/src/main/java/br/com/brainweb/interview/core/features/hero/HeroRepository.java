@@ -2,7 +2,9 @@ package br.com.brainweb.interview.core.features.hero;
 
 import br.com.brainweb.interview.model.Hero;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -28,6 +30,9 @@ public class HeroRepository {
             "FROM hero h " +
             "WHERE LOWER(h.name) LIKE :name";
 
+    private static final String DELETE_QUERY = "DELETE FROM hero h " +
+            "WHERE h.id=:id";
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     UUID create(Hero hero) {
@@ -41,8 +46,8 @@ public class HeroRepository {
                 UUID.class);
     }
 
-    Hero findById(UUID heroId) {
-        final Map<String, Object> params = Map.of("id", heroId);
+    Hero getById(UUID heroId) {
+        final SqlParameterSource params = new MapSqlParameterSource("id", heroId);
 
         return this.namedParameterJdbcTemplate.queryForObject(
                 FIND_HERO_BY_ID,
@@ -51,13 +56,18 @@ public class HeroRepository {
         );
     }
 
-    Collection<Hero> findByParam(String name) {
-        final Map<String, Object> params = Map.of("name", "%" + name.toLowerCase() + "%");
+    Collection<Hero> getByName(String name) {
+        final SqlParameterSource params = new MapSqlParameterSource("name", "%" + name.toLowerCase() + "%");
 
         return this.namedParameterJdbcTemplate.query(
                 FIND_HERO_BY_PARAM,
                 params,
                 new HeroRowMapper()
         );
+    }
+
+    void delete(UUID id) {
+        final SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
+        this.namedParameterJdbcTemplate.update(DELETE_QUERY, namedParameters);
     }
 }
